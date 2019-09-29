@@ -40,4 +40,6 @@ select
     unnest(a.指标类别) as 指标类别 , 
     unnest(a.指标数值) as 指标数值 
 from t1 a   ) 
-select * from t2 a ; 
+select * from t2 a  123; 
+
+123
