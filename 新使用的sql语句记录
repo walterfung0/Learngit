@@ -1,0 +1,43 @@
+记录原因：
+http://www.postgres.cn/docs/10/resources.html
+你自己！
+PostgreSQL是一个开源项目。就其本身而言，它依赖于用户社区提供不间断的支持。如果你刚开始使用PostgreSQL，你将需要从其他人那里得到帮助，或者通过文档或者通过邮件列表。请考虑把你的知识贡献出来回馈社区。阅读邮件列表并且回答问题。如果你学到某些不在文档中的东西，请把它写下来并且贡献出来。如果你为代码增加了特性，也请把它们贡献出来。
+
+6.11
+1. unnest(列名) 
+    说明：用来解决{a,b,c}的问题
+2. substr(unnest(a.关联订单), 5, 8) 
+    说明：substr用来截取某一部分的内容作为一列，5代表从第5个数字开始取数据（包括第5个），往后取8个数字。
+3. to_char(c.下单时间::timestamp with time zone, 'yyyy-MM')
+    说明：如果to_char不能对列内容是text的数据截断时间，如果提示(ERROR: function to_char(text, unknown) does not exist)错误时，可以试着在列后增加(::timestamp with time zone)
+    
+    
+7.2
+1. update table_name set column_name = replace(column_name,'被替换内容','替换后内容')
+替换某列中的特定内容的公式~
+
+7.11
+1.array_to_string(投诉类型二级分类,'|')
+从售后工单明细_V2表中看到的公式, 不用unnest再string_agg了!!
+
+7.18
+1. 长表转宽表方法,对已有数据,先做array,然后再unnest,即转换完成，超级强。
+with t1 as (  
+select 
+    a.日期 , a.英文名 , a.cn , a.归属组 , a.技能组 , 
+    array['电话工作量','电话通话时长','erc电话工作量','erc电话通话时长','zzc电话工作量','zzc电话通话时长','zzc电话最后接起量','erc电话最后接起量','zzc电话评价量',
+            'erc电话评价量','zzc电话满意及非常满意量','erc电话满意及非常满意量','在线工作量','在线服务时长','zzc在线工作量','erc在线工作量','zzc在线服务时长','erc在线服务时长',
+            'zzc在线最后接起量','erc在线最后接起量','zzc在线评价量','erc在线评价量','zzc在线满意及非常满意量','erc在线满意及非常满意量','email_erc','email_zzc','email_poi',
+            'order_zzc','order_erc','order_poi','升级工单工作量','售后工单工作量','电话fcr分子','电话fcr分母','在线fcr分子','在线fcr分母','是否计算遵时率','实际上班是否遵时','实际下班是否遵时']  as 指标类别 , 
+   array[电话工作量, 电话通话时长, erc电话工作量, erc电话通话时长, zzc电话工作量, zzc电话通话时长, zzc电话最后接起量, erc电话最后接起量, zzc电话评价量, 
+            erc电话评价量, zzc电话满意及非常满意量, erc电话满意及非常满意量, 在线工作量, 在线服务时长, zzc在线工作量, erc在线工作量, zzc在线服务时长, erc在线服务时长,
+            zzc在线最后接起量, erc在线最后接起量, zzc在线评价量, erc在线评价量, zzc在线满意及非常满意量, erc在线满意及非常满意量, email_erc, email_zzc, email_poi, 
+            order_zzc, order_erc, order_poi, 升级工单工作量, 售后工单工作量, 电话fcr分子, 电话fcr分母, 在线fcr分子, 在线fcr分母, 是否计算遵时率, 实际上班是否遵时, 实际下班是否遵时] as 指标数值  
+from csbi.statistic_employee_work_performence a  )  , 
+t2 as ( 
+select 
+        a.日期 , a.英文名 , a.cn , a.归属组 , a.技能组 , 
+    unnest(a.指标类别) as 指标类别 , 
+    unnest(a.指标数值) as 指标数值 
+from t1 a   ) 
+select * from t2 a ; 
